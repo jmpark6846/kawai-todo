@@ -7,17 +7,27 @@ import {
   Dimensions,
   TextInput
 } from "react-native";
+import PropTypes from "prop-types";
 
 const { width, height } = Dimensions.get("window");
+
 export default class Todo extends React.Component {
-  state = {
-    isEditing: false,
-    isCompleted: false,
-    todoValue: ""
+  constructor(props) {
+    super(props);
+    this.state = {
+      isEditing: false,
+      todoValue: props.text
+    };
+  }
+  static propTypes = {
+    id: PropTypes.string.isRequired,
+    text: PropTypes.string.isRequired,
+    isCompleted: PropTypes.bool.isRequired,
+    deleteById: PropTypes.func.isRequired
   };
   render() {
-    const { isCompleted, isEditing, todoValue } = this.state;
-    const { text } = this.props;
+    const { isEditing, todoValue } = this.state;
+    const { id, text, isCompleted, deleteById } = this.props;
     return (
       <View style={styles.container}>
         <View style={styles.column}>
@@ -33,8 +43,8 @@ export default class Todo extends React.Component {
             <TextInput
               value={todoValue}
               style={[
-                styles.input,
                 styles.text,
+                styles.input,
                 isCompleted ? styles.completedText : styles.uncompletedText
               ]}
               onChangeText={this._controlInput}
@@ -68,7 +78,7 @@ export default class Todo extends React.Component {
                 <Text style={styles.actinoText}>✏️</Text>
               </View>
             </TouchableOpacity>
-            <TouchableOpacity>
+            <TouchableOpacity onPressOut={() => deleteById(id)}>
               <View style={styles.actionContainer}>
                 <Text style={styles.acitonText}>❌</Text>
               </View>
@@ -83,7 +93,6 @@ export default class Todo extends React.Component {
 
     this.setState(prevState => ({
       ...prevState,
-      todoValue: text,
       isEditing: true
     }));
   };
@@ -99,12 +108,12 @@ export default class Todo extends React.Component {
       isCompleted: !prevState.isCompleted
     }));
   };
-  _controlInput = (text) => {
+  _controlInput = text => {
     this.setState({
       ...this.state,
-      todoValue: text,
-    })
-  }
+      todoValue: text
+    });
+  };
 }
 
 const styles = StyleSheet.create({
@@ -156,8 +165,8 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     marginHorizontal: 10
   },
-  input:{
+  input: {
     padding: 0,
-    width:width/2
+    width: width / 2
   }
 });
