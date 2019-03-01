@@ -1,20 +1,109 @@
-import React from 'react'
-import {View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native'
+import React from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Dimensions,
+  TextInput
+} from "react-native";
 
-const { width, height } = Dimensions.get('window')
-export default class Todo extends React.Component{
+const { width, height } = Dimensions.get("window");
+export default class Todo extends React.Component {
   state = {
     isEditing: false,
-  }
-  render(){
+    isCompleted: false,
+    todoValue: ""
+  };
+  render() {
+    const { isCompleted, isEditing, todoValue } = this.state;
+    const { text } = this.props;
     return (
       <View style={styles.container}>
-        <TouchableOpacity>
-          <View style={styles.circle} />
-        </TouchableOpacity>
-        <Text style={styles.text}>Hello! I'm Todo!</Text>
+        <View style={styles.column}>
+          <TouchableOpacity onPress={this._toggleCompleted}>
+            <View
+              style={[
+                styles.circle,
+                isCompleted ? styles.completedTodo : styles.uncompletedTodo
+              ]}
+            />
+          </TouchableOpacity>
+          {isEditing ? (
+            <TextInput
+              value={todoValue}
+              style={[
+                styles.input,
+                styles.text,
+                isCompleted ? styles.completedText : styles.uncompletedText
+              ]}
+              onChangeText={this._controlInput}
+              onBlur={this._finishEditing}
+              multiline={true}
+              returnKeyType="done"
+            />
+          ) : (
+            <Text
+              style={[
+                styles.text,
+                isCompleted ? styles.completedText : styles.uncompletedText
+              ]}
+            >
+              {text}
+            </Text>
+          )}
+        </View>
+        {isEditing ? (
+          <View style={styles.actions}>
+            <TouchableOpacity onPressOut={this._finishEditing}>
+              <View style={styles.actionContainer}>
+                <Text style={styles.actionText}>✅</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View style={styles.actions}>
+            <TouchableOpacity onPressOut={this._startEditing}>
+              <View style={styles.actionContainer}>
+                <Text style={styles.actinoText}>✏️</Text>
+              </View>
+            </TouchableOpacity>
+            <TouchableOpacity>
+              <View style={styles.actionContainer}>
+                <Text style={styles.acitonText}>❌</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
-    )
+    );
+  }
+  _startEditing = () => {
+    const { text } = this.props;
+
+    this.setState(prevState => ({
+      ...prevState,
+      todoValue: text,
+      isEditing: true
+    }));
+  };
+  _finishEditing = () => {
+    this.setState(prevState => ({
+      ...prevState,
+      isEditing: false
+    }));
+  };
+  _toggleCompleted = () => {
+    this.setState(prevState => ({
+      ...prevState,
+      isCompleted: !prevState.isCompleted
+    }));
+  };
+  _controlInput = (text) => {
+    this.setState({
+      ...this.state,
+      todoValue: text,
+    })
   }
 }
 
@@ -22,14 +111,16 @@ const styles = StyleSheet.create({
   container: {
     width: width - 50,
     borderBottomColor: "#bbb",
-    borderBottomWidth:StyleSheet.hairlineWidth,
+    borderBottomWidth: StyleSheet.hairlineWidth,
     flexDirection: "row",
-    alignItems: "center"
+    alignItems: "center",
+    justifyContent: "space-between"
   },
   text: {
     fontSize: 20,
     fontWeight: "400",
     marginVertical: 20,
+    width: width / 2
   },
   circle: {
     width: 30,
@@ -38,5 +129,35 @@ const styles = StyleSheet.create({
     marginRight: 20,
     borderColor: "red",
     borderWidth: 3
+  },
+  completedTodo: {
+    borderColor: "#bbb"
+  },
+  uncompletedTodo: {
+    borderColor: "red"
+  },
+  completedText: {
+    color: "#bbb",
+    textDecorationLine: "line-through"
+  },
+  uncompletedText: {
+    color: "red"
+  },
+  column: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    width: width / 2
+  },
+  actions: {
+    flexDirection: "row"
+  },
+  actionContainer: {
+    marginVertical: 10,
+    marginHorizontal: 10
+  },
+  input:{
+    padding: 0,
+    width:width/2
   }
-})
+});
