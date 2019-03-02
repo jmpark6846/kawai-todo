@@ -81,7 +81,12 @@ export default class Todo extends React.Component {
                 <Text style={styles.actinoText}>✏️</Text>
               </View>
             </TouchableOpacity>
-            <TouchableOpacity onPressOut={() => deleteById(id)}>
+            <TouchableOpacity
+              onPressOut={event => {
+                event.stopPropagation();
+                deleteById(id);
+              }}
+            >
               <View style={styles.actionContainer}>
                 <Text style={styles.acitonText}>❌</Text>
               </View>
@@ -91,7 +96,8 @@ export default class Todo extends React.Component {
       </View>
     );
   }
-  _startEditing = () => {
+  _startEditing = event => {
+    event.stopPropagation();
     const { text } = this.props;
 
     this.setState(prevState => ({
@@ -99,13 +105,15 @@ export default class Todo extends React.Component {
       isEditing: true
     }));
   };
-  _finishEditing = () => {
+  _finishEditing = event => {
+    event.stopPropagation();
     const { todoValue } = this.state;
     const { id, updateTodo } = this.props;
     updateTodo(id, todoValue);
     this.setState({ isEditing: false });
   };
-  _toggleCompleted = () => {
+  _toggleCompleted = event => {
+    event.stopPropagation();
     const { isCompleted, completeTodo, uncompleteTodo, id } = this.props;
     if (isCompleted) {
       uncompleteTodo(id);
