@@ -8,10 +8,12 @@ import {
   TextInput,
   Dimensions,
   Platform,
-  ScrollView
+  ScrollView,
+  AsyncStorage
 } from "react-native";
 import Todo from "./Todo";
 import uuid from "uuid/v1";
+
 
 const { height, width } = Dimensions.get("window");
 export default class App extends React.Component {
@@ -25,7 +27,6 @@ export default class App extends React.Component {
   };
   render() {
     const { loadedTodos, newTodo, todos } = this.state;
-    console.log(todos)
     if (!loadedTodos) {
       return <AppLoading />;
     }
@@ -45,7 +46,16 @@ export default class App extends React.Component {
             onSubmitEditing={this._addTodo}
           />
           <ScrollView contentContainerStyle={styles.toDos}>
-            { Object.values(todos).map(todo => <Todo key={todo.id} {...todo} deleteById={this._deleteTodo} />)}
+            {Object.values(todos).map(todo => (
+              <Todo
+                key={todo.id}
+                {...todo}
+                deleteById={this._deleteTodo}
+                completeTodo={this._completeTodo}
+                uncompleteTodo={this._uncompleteTodo}
+                updateTodo={this._updateTodo}
+              />
+            ))}
           </ScrollView>
         </View>
       </View>
@@ -75,20 +85,81 @@ export default class App extends React.Component {
             ...newTodoObject
           }
         };
+        this._saveTodo(newState.todos)
         return { ...newState };
       });
     }
   };
-  _loadTodos = () => {
-    this.setState({ loadedTodos: true });
+  _loadTodos = async () => {
+    try{
+      const todos = await AsyncStorage.getItem('todos')
+      this.setState({ loadedTodos: true, todos: JSON.parse(todos) });
+    } catch(err){
+      console.log(err)
+    }
+    
   };
   _deleteTodo = id => {
     this.setState(prevState => {
       const todos = prevState.todos;
       delete todos[id];
-      return { ...prevState, ...todos}
+      const newState = { ...prevState, ...todos };
+      this._saveTodo(newState.todos)
+      return newState
     });
   };
+  _completeTodo = id => {
+    this.setState(prevState => {
+      const newState ={
+        ...prevState,
+        todos: {
+          ...prevState.todos,
+          [id]: {
+            ...prevState.todos[id],
+            isCompleted: true
+          }
+        }
+      }
+      this._saveTodo(newState.todos)
+      return newState
+    });
+  };
+  _uncompleteTodo = id => {
+    this.setState(prevState => {
+      const newState ={
+        ...prevState,
+        todos: {
+          ...prevState.todos,
+          [id]: {
+            ...prevState.todos[id],
+            isCompleted: false
+          }
+        }
+      }
+      this._saveTodo(newState.todos)
+      return newState
+    });
+  };
+  _updateTodo = (id, text) => {
+    this.setState(prevState => {
+      const newState ={
+        ...prevState,
+        todos: {
+          ...prevState.todos,
+          [id]: {
+            ...prevState.todos[id],
+            text
+          }
+        }
+      }
+      this._saveTodo(newState.todos)
+      return newState
+    });  
+  }
+  _saveTodo = (newTodos) => {
+    console.log(JSON.stringify(newTodos))
+    const saveTodos = AsyncStorage.setItem('todos', JSON.stringify(newTodos))
+  }
 }
 
 const styles = StyleSheet.create({
@@ -119,7 +190,7 @@ const styles = StyleSheet.create({
         }
       },
       android: {
-        elevation: 3
+        elevation: 3 
       }
     }),
     borderTopLeftRadius: 15,

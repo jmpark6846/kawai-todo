@@ -23,7 +23,10 @@ export default class Todo extends React.Component {
     id: PropTypes.string.isRequired,
     text: PropTypes.string.isRequired,
     isCompleted: PropTypes.bool.isRequired,
-    deleteById: PropTypes.func.isRequired
+    deleteById: PropTypes.func.isRequired,
+    uncompleteTodo: PropTypes.func.isRequired,
+    completeTodo: PropTypes.func.isRequired,
+    updateTodo: PropTypes.func.isRequired
   };
   render() {
     const { isEditing, todoValue } = this.state;
@@ -97,16 +100,18 @@ export default class Todo extends React.Component {
     }));
   };
   _finishEditing = () => {
-    this.setState(prevState => ({
-      ...prevState,
-      isEditing: false
-    }));
+    const { todoValue } = this.state;
+    const { id, updateTodo } = this.props;
+    updateTodo(id, todoValue);
+    this.setState({ isEditing: false });
   };
   _toggleCompleted = () => {
-    this.setState(prevState => ({
-      ...prevState,
-      isCompleted: !prevState.isCompleted
-    }));
+    const { isCompleted, completeTodo, uncompleteTodo, id } = this.props;
+    if (isCompleted) {
+      uncompleteTodo(id);
+    } else {
+      completeTodo(id);
+    }
   };
   _controlInput = text => {
     this.setState({
